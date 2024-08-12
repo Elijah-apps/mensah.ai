@@ -6,14 +6,22 @@
   <title>Mensah AI Chatbot</title>
   <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+  </script>
   <script type="module">
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
     import { marked } from "https://esm.run/marked";
 
     const API_KEY = "AIzaSyBhO-b6tTUoRf-ssHyf0JPAxIEAr0JqZck";
-
     const genAI = new GoogleGenerativeAI(API_KEY);
- 
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     export function scrollToDocumentBottom() {
       const scrollingElement = document.scrollingElement || document.body;
       scrollingElement.scrollTop = scrollingElement.scrollHeight;
@@ -25,8 +33,6 @@
       const chatMessages = document.querySelector('.chat-messages');
       const aboutLink = document.getElementById('aboutLink');
 
-      let chat;
-
       chatButton.addEventListener('click', async () => {
         const message = chatInput.value;
         if (message) {
@@ -35,19 +41,15 @@
           userMessage.textContent = message;
           chatMessages.appendChild(userMessage);
 
-          // Clear the input field
           chatInput.value = '';
 
-          // Fetch response from Gemini API
           const botMessage = await getBotResponse(message);
 
-          // Display bot response
           const botMessageElement = document.createElement('div');
           botMessageElement.classList.add('chat-message', 'bg-gray-100', 'p-2', 'rounded', 'mt-2');
           botMessageElement.textContent = `Bot: ${botMessage}`;
           chatMessages.appendChild(botMessageElement);
 
-          // Scroll to the bottom of the chat
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
       });
@@ -58,28 +60,19 @@
 
       gsap.fromTo('.chat-messages', { opacity: 0 }, { opacity: 1, duration: 1 });
 
-      // Function to interact with the Gemini API
       async function getBotResponse(userMessage) {
         try {
-          const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBhO-b6tTUoRf-ssHyf0JPAxIEAr0JqZck', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{ text: userMessage }]
-              }]
-            })
-          });
+          const prompt = "Write a story about an AI and magic";
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          const text = await response.text();
 
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
 
-          const data = await response.json();
+          const data = JSON.parse(text);
 
-          // Check if the response contains the expected data
           if (data && data.contents && data.contents.length > 0 && data.contents[0].parts && data.contents[0].parts.length > 0) {
             return data.contents[0].parts[0].text;
           } else {
@@ -93,38 +86,38 @@
     });
   </script>
 </head>
-<body>
-  <div class="h-screen flex flex-col bg-gray-900">
+<body class="bg-gray-900 text-gray-100">
+  <div class="h-screen flex flex-col">
     <!-- Top Bar -->
-    <div class="bg-gray-800 p-4 flex justify-between items-center">
-      <h1 class="text-white text-xl">Mensah AI Chatbot</h1>
+    <div class="bg-gray-800 p-4 flex justify-between items-center shadow-md">
+      <h1 class="text-white text-2xl font-semibold">Mensah AI Chatbot</h1>
       <nav>
-        <ul class="flex space-x-4">
-          <li><a href="#" class="text-blue-400 hover:text-blue-300">Home</a></li>
-          <li><a href="#" id="aboutLink" class="text-blue-400 hover:text-blue-300">About</a></li>
-          <li><a href="#" class="text-blue-400 hover:text-blue-300">Contact</a></li>
+        <ul class="flex space-x-6">
+          <li><a href="#" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="#" id="aboutLink" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-info-circle"></i> About</a></li>
+          <li><a href="#" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-envelope"></i> Contact</a></li>
         </ul>
       </nav>
     </div>
 
     <div class="flex flex-grow">
       <!-- Sidebar -->
-      <div class="bg-gray-800 w-64 p-4">
+      <div class="bg-gray-800 w-64 p-4 shadow-lg">
         <ul class="space-y-4">
-          <li><a href="#" class="text-blue-400 hover:text-blue-300">Dashboard</a></li>
-          <li><a href="#" class="text-blue-400 hover:text-blue-300">Settings</a></li>
-          <li><a href="#" class="text-blue-400 hover:text-blue-300">Profile</a></li>
-          <li><a href="#" class="text-blue-400 hover:text-blue-300">Logout</a></li>
+          <li><a href="#" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+          <li><a href="#" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-cog"></i> Settings</a></li>
+          <li><a href="#" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-user"></i> Profile</a></li>
+          <li><a href="#" class="text-blue-400 hover:text-blue-300 flex items-center"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
       </div>
 
       <!-- Main Content Area -->
       <div class="flex-grow p-6">
-        <div class="chat-messages bg-gray-800 p-4 rounded-lg animate__fadeInUp overflow-y-auto h-full">
+        <div class="chat-messages bg-gray-800 p-4 rounded-lg h-80 overflow-y-auto animate__animated animate__fadeInUp">
         </div>
-        <div class="flex items-center p-4 bg-gray-800 mt-4 rounded-lg">
+        <div class="flex items-center p-4 bg-gray-800 mt-4 rounded-lg shadow-md">
           <input type="text" id="chatInput" class="flex-grow mr-2 p-2 border rounded bg-gray-700 text-white focus:outline-none" placeholder="Type your message">
-          <button id="chatButton" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Send</button>
+          <button id="chatButton" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Send</button>
         </div>
       </div>
     </div>
