@@ -1,54 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Chatbot Interface</title>
-<link rel="stylesheet" href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot with Gemini API</title>
+  <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
 <body>
-<div class="h-screen flex flex-col">
-  <div class="flex-grow overflow-y-auto p-4">
-    <div class="chat-messages">
+  <div class="h-screen flex flex-col bg-gray-900">
+    <div class="flex-grow overflow-y-auto p-4">
+      <div class="chat-messages animate__fadeInUp">
       </div>
+    </div>
+    <div class="flex items-center p-4 bg-gray-800">
+      <input type="text" id="chatInput" class="flex-grow mr-2 p-2 border rounded bg-gray-700 text-white focus:outline-none" placeholder="Type your message">
+      <button id="chatButton" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Send</button>
+    </div>
+    <div class="bg-gray-700 p-4">
+      <nav class="flex justify-center">
+        <ul class="flex space-x-4">
+          <li><a href="#" class="text-blue-400 hover:text-blue-300">Home</a></li>
+          <li><a href="#" id="aboutLink" class="text-blue-400 hover:text-blue-300">About</a></li>
+          <li><a href="#" class="text-blue-400 hover:text-blue-300">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
   </div>
-  <div class="flex items-center p-4 bg-gray-100">
-    <input type="text" class="flex-grow mr-2 p-2 border rounded" placeholder="Type your message">
-    <button class="bg-blue-500 text-white px-4 py-2 rounded">Send</button>
-  </div>
-  <div class="bg-gray-200 p-4">
-    <nav class="flex justify-center">
-      <ul class="flex space-x-4">
-        <li><a href="#" class="text-blue-500">Home</a></li>
-        <li><a href="#" class="text-blue-500">About</a></li>
-        <li><a href="#" class="text-blue-500">Contact</a></li>
-      </ul>
-    </nav>
-  </div>
-</div>
 
-<script>
-const chatInput = document.querySelector('input[type="text"]');
-const chatButton = document.querySelector('button');
-const chatMessages = document.querySelector('.chat-messages');
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+  <script>
+    const chatInput = document.getElementById('chatInput');
+    const chatButton = document.getElementById('chatButton');
+    const chatMessages = document.querySelector('.chat-messages');
+    const aboutLink = document.getElementById('aboutLink');
 
-chatButton.addEventListener('click', () => {
-  const message = chatInput.value;
-  if (message) {
-    const userMessage = document.createElement('div');
-    userMessage.classList.add('chat-message', 'bg-blue-100', 'p-2', 'rounded', 'text-right');
-    userMessage.textContent = message;
-    chatMessages.appendChild(userMessage);
+    chatButton.addEventListener('click', async () => {
+      const message = chatInput.value;
+      if (message) {
+        const userMessage = document.createElement('div');
+        userMessage.classList.add('chat-message', 'bg-blue-100', 'p-2', 'rounded', 'text-right');
+        userMessage.textContent = message;
+        chatMessages.appendChild(userMessage);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botMessage = document.createElement('div');
-      botMessage.classList.add('chat-message', 'bg-gray-100', 'p-2', 'rounded');
-      botMessage.textContent = `Bot: Hello, ${message}!`;
-      chatMessages.appendChild(botMessage);
-    }, 1000);
+        // Clear the input field
+        chatInput.value = '';
 
-    chatInput.value = '';
-  }
-});
-</script>
+        // Fetch response from Gemini API
+        const botMessage = await getBotResponse(message);
+
+        // Display bot response
+        const botMessageElement = document.createElement('div');
+        botMessageElement.classList.add('chat-message', 'bg-gray-100', 'p-2', 'rounded');
+        botMessageElement.textContent = `Bot: ${botMessage}`;
+        chatMessages.appendChild(botMessageElement);
+      }
+    });
+
+    aboutLink.addEventListener('click', () => {
+      // Trigger Gemini API call or open a modal for input
+      console.log('About clicked');
+      // Replace with actual Gemini API integration
+    });
+
+    gsap.fromTo('.chat-messages', { opacity: 0 }, { opacity: 1, duration: 1 });
+
+    // Function to interact with the Gemini API
+    async function getBotResponse(userMessage) {
+      try {
+        const response = await fetch('https://gemini-api-url.com/endpoint', { // Replace with the actual Gemini API URL
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'AIzaSyBhO-b6tTUoRf-ssHyf0JPAxIEAr0JqZck' // Replace with your actual API token if needed
+          },
+          body: JSON.stringify({ message: userMessage })
+        });
+        
+        const data = await response.json();
+        return data.response; // Adjust this depending on the structure of the API response
+      } catch (error) {
+        console.error('Error fetching the Gemini API:', error);
+        return 'Sorry, something went wrong with the API.';
+      }
+    }
+  </script>
 </body>
 </html>
